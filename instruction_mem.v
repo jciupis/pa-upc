@@ -5,9 +5,10 @@ module instruction_mem
 );
 
     reg [31:0] instruction_mem [255:0];
-    
+
+    // TODO: replace the path with some abstraction
     initial begin
-        $readmemh("instructions.txt", instruction_mem);
+        $readmemh("C:/Users/JC/repo/pa-upc/tests/instructions.txt", instruction_mem);
     end
     
     assign data = instruction_mem[address];

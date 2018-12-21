@@ -16,7 +16,7 @@ module processor
     wire [31:0] mock_jmp_pc; // TODO: a mocked signal to fill an empty input. Change it to sth meaningful
 
     /* Instruction memory interface. */
-    instruction_mem
+    instruction_mem imem
     (
         .address  (f_pc_out[9:2]),
         .data     (f_instr)
