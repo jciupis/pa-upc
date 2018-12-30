@@ -1,9 +1,9 @@
 module alu
 (
-    input clock,        // Clock.
-    input opcode,       // Operation code.
-    input [31:0] A, B,  // Operands.
-    output reg result   // Result.
+    input clock,              // Clock.
+    input opcode,             // Operation code.
+    input [31:0] A, B,        // Operands.
+    output reg [31:0] result  // Result.
 );
 
 `include "parameters.v"
