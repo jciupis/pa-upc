@@ -24,6 +24,11 @@ module processor
     wire [19:0] d_jmp_offset;
     wire [31:0] d_read_data_1;
     wire [31:0] d_read_data_2;
+    wire        d_mem_read;
+    wire        d_mem_write;
+    wire        d_mem_byte;
+    wire        d_reg_write;
+    wire        d_mem_to_reg;
 
     wire [6:0]  x_opcode;
     wire [5:0]  x_dst_reg;
@@ -35,6 +40,11 @@ module processor
     wire [31:0] x_read_data_1;
     wire [31:0] x_read_data_2;
     wire [31:0] x_alu_result;
+    wire        x_mem_read;
+    wire        x_mem_write;
+    wire        x_mem_byte;
+    wire        x_reg_write;
+    wire        x_mem_to_reg;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////  FETCH  //////////////////////////////////////////////
@@ -106,14 +116,23 @@ module processor
 ////////////////////////////////////////////  DECODE  //////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /* A custom instruction set is used. */
-    assign d_opcode     = d_instr[31:25];
-    assign d_dst_reg    = d_instr[24:20];
-    assign d_src_reg_1  = d_instr[19:15];
-    assign d_src_reg_2  = d_instr[14:10];
-    assign d_mem_offset = d_instr[14:0];
-    assign d_brn_offset = {d_instr[24:20], d_instr[9:0]};
-    assign d_jmp_offset = {d_instr[24:20], d_instr[14:0]};
+    decoder decoder
+    (
+        .clock        (clock),
+        .instruction  (d_instr),
+        .opcode       (d_opcode),
+        .dst_reg      (d_dst_reg),
+        .src_reg_1    (d_src_reg_1),
+        .src_reg_2    (d_src_reg_2),
+        .mem_offset   (d_mem_offset),
+        .brn_offset   (d_brn_offset),
+        .jmp_offset   (d_jmp_offset),
+        .mem_read     (d_mem_read),
+        .mem_write    (d_mem_write),
+        .mem_byte     (d_mem_byte),
+        .reg_write    (d_reg_write),
+        .mem_to_reg   (d_mem_to_reg)
+    );
 
     /* Decode to execute pipeline register. */
     d2x_flop d2x
@@ -129,6 +148,11 @@ module processor
         .d_jmp_offset  (d_jmp_offset),
         .d_read_data_1 (d_read_data_1),
         .d_read_data_2 (d_read_data_1),
+        .d_mem_read    (d_mem_read),
+        .d_mem_write   (d_mem_write),
+        .d_mem_byte    (d_mem_byte),
+        .d_reg_write   (d_reg_write),
+        .d_mem_to_reg  (d_mem_to_reg),
         .x_opcode      (x_opcode),
         .x_dst_reg     (x_dst_reg),
         .x_src_reg_1   (x_src_reg_1),
@@ -137,7 +161,12 @@ module processor
         .x_brn_offset  (x_brn_offset),
         .x_jmp_offset  (x_jmp_offset),
         .x_read_data_1 (x_read_data_1),
-        .x_read_data_2 (x_read_data_2)
+        .x_read_data_2 (x_read_data_2),
+        .x_mem_read    (x_mem_read),
+        .x_mem_write   (x_mem_write),
+        .x_mem_byte    (x_mem_byte),
+        .x_reg_write   (x_reg_write),
+        .x_mem_to_reg  (x_mem_to_reg)
     );
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
