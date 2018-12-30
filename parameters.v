@@ -12,5 +12,3 @@
 `define OP_STW	6'b01_0011	/* STW	0x13 */
 `define OP_BEQ	6'b11_0000	/* BEQ	0x30 */
 `define OP_JMP	6'b11_0001	/* JMP	0x31 */
-
-/* TODO */
