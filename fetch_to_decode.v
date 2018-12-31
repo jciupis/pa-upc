@@ -1,4 +1,4 @@
-module f2d_flop
+module fetch_to_decode
 (
     input clock,               // Clock.
     input reset,               // Command to reset all decode stage variables.

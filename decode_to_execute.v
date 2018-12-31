@@ -1,4 +1,4 @@
-module d2x_flop
+module decode_to_execute
 (
     input clock,                      // Clock.
     input reset,                      // Command to reset all execute stage variables.

@@ -102,7 +102,7 @@ module processor
     );
 
     /* Fetch to decode pipeline register. */
-    f2d_flop f2d
+    fetch_to_decode f2d
     (
         .clock    (clock),
         .reset    (reset),
@@ -135,7 +135,7 @@ module processor
     );
 
     /* Decode to execute pipeline register. */
-    d2x_flop d2x
+    decode_to_execute d2x
     (
         .clock         (clock),
         .reset         (reset),
