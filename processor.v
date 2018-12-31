@@ -6,13 +6,18 @@ module processor
 
 `include "parameters.v"
 
-    /* Declarations */
+///////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////  DECLARATIONS  ///////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /* Fetch stage variables. */
     wire [31:0] f_pc_in;     // Previous value of the PC.
     wire [31:0] f_pc_out;    // Current value of the PC.
     wire [31:0] f_pc_add4;   // Next value of the PC (no support for branches yet).
     wire [31:0] f_instr;     // Fetched instruction.
     wire [31:0] mock_jmp_pc; // TODO: a mocked signal to fill an empty input. Change it to sth meaningful
 
+    /* Decode stage variables. */
     wire [31:0] d_instr;
     wire [31:0] d_pc;
     wire [6:0]  d_opcode;
@@ -30,6 +35,7 @@ module processor
     wire        d_reg_write;
     wire        d_mem_to_reg;
 
+    /* Execute stage variables. */
     wire [6:0]  x_opcode;
     wire [5:0]  x_dst_reg;
     wire [5:0]  x_src_reg_1;
@@ -45,6 +51,14 @@ module processor
     wire        x_mem_byte;
     wire        x_reg_write;
     wire        x_mem_to_reg;
+
+    /* Memory stage variables. */
+    wire        m_mem_read;
+    wire        m_mem_write;
+    wire        m_mem_byte;
+    wire        m_reg_write;
+    wire        m_mem_to_reg;
+    wire [31:0] m_alu_result;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////  FETCH  //////////////////////////////////////////////
@@ -70,7 +84,7 @@ module processor
         .Q       (f_pc_out)
     );
 
-    /* Register file. */
+    /* Register file. TODO: fill the write signals. */
     register_file registers
     (
         .clock          (clock),
@@ -116,6 +130,7 @@ module processor
 ////////////////////////////////////////////  DECODE  //////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /* Decoding module. */
     decoder decoder
     (
         .clock        (clock),
@@ -173,14 +188,43 @@ module processor
 ///////////////////////////////////////////  EXECUTE  /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /* Arithmetic logic unit */
+    /* Arithmetic logic unit. */
     alu alu
     (
-        .clock(clock),
-        .opcode(x_opcode),
-        .A(x_read_data_1),
-        .B(x_read_data_2),
-        .result(x_alu_result)
+        .clock   (clock),
+        .opcode  (x_opcode),
+        .A       (x_read_data_1),
+        .B       (x_read_data_2),
+        .result  (x_alu_result)
+    );
+
+    /* Execute to memory pipeline register. */
+    execute_to_memory x2m
+    (
+        .clock         (clock),
+        .reset         (reset),
+        .x_mem_read    (x_mem_read),
+        .x_mem_write   (x_mem_write),
+        .x_mem_byte    (x_mem_byte),
+        .x_reg_write   (x_reg_write),
+        .x_mem_to_reg  (x_mem_to_reg),
+        .x_alu_result  (x_alu_result),
+        .m_mem_read    (m_mem_read),
+        .m_mem_write   (m_mem_write),
+        .m_mem_byte    (m_mem_byte),
+        .m_reg_write   (m_reg_write),
+        .m_mem_to_reg  (m_mem_to_reg),
+        .m_alu_result  (m_alu_result)
+    );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////  MEMORY  //////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /* Data memory interface. */
+    data_mem dmem
+    (
+        .clock  (clock)
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
