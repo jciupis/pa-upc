@@ -3,11 +3,13 @@ module fetch_to_decode
     input clock,               // Clock.
     input reset,               // Command to reset all decode stage variables.
     
-    input [31:0] f_instr,      // Fetch stage instruction.
-    input [31:0] f_pc,         // Fetch stage program counter.
+    /* Fetch stage variables. */
+    input [31:0] f_instr,      // Instruction.
+    input [31:0] f_pc,         // Program counter.
     
-    output reg [31:0] d_instr, // Decode stage instruction.
-    output reg [31:0] d_pc     // Decode stage program counter.
+    /* Decode stage variables. */
+    output reg [31:0] d_instr, // Instruction.
+    output reg [31:0] d_pc     // Program counter.
 );
 
     always @(posedge clock) begin
