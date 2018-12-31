@@ -162,7 +162,7 @@ module processor
         .d_brn_offset  (d_brn_offset),
         .d_jmp_offset  (d_jmp_offset),
         .d_read_data_1 (d_read_data_1),
-        .d_read_data_2 (d_read_data_1),
+        .d_read_data_2 (d_read_data_2),
         .d_mem_read    (d_mem_read),
         .d_mem_write   (d_mem_write),
         .d_mem_byte    (d_mem_byte),
