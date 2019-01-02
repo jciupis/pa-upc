@@ -4,6 +4,7 @@ module execute_to_memory
     input reset,                     // Command to reset all memory stage variables.
 
     /* Execute stage variables. */
+    input  [4:0] x_dst_reg,          // Destination register index.
     input        x_mem_read,         // Flag indicating that data memory should be read.
     input        x_mem_write,        // Flag indicating that data memory should be written.
     input        x_mem_byte,         // Flag indicating that memory should be accessed bite-wise.
@@ -12,6 +13,7 @@ module execute_to_memory
     input [31:0] x_alu_result,       // Result of the ALU operation.
 
     /* Memory stage variables. */
+    output reg  [4:0] m_dst_reg,     // Destination register index.
     output reg        m_mem_read,    // Flag indicating that data memory should be read.
     output reg        m_mem_write,   // Flag indicating that data memory should be written.
     output reg        m_mem_byte,    // Flag indicating that memory should be accessed bite-wise.
@@ -21,6 +23,7 @@ module execute_to_memory
 );
 
     always @(posedge clock) begin
+        m_dst_reg    <= (reset) ?  5'b0 : x_dst_reg;
         m_mem_read   <= (reset) ?  1'b0 : x_mem_read;
         m_mem_write  <= (reset) ?  1'b0 : x_mem_write;
         m_mem_byte   <= (reset) ?  1'b0 : x_mem_byte;

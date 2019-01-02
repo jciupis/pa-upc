@@ -58,12 +58,22 @@ module processor
     wire        x_mem_to_reg;
 
     /* Memory stage variables. */
+    wire  [4:0] m_dst_reg;
     wire        m_mem_read;
     wire        m_mem_write;
     wire        m_mem_byte;
     wire        m_reg_write;
     wire        m_mem_to_reg;
     wire [31:0] m_alu_result;
+    wire [31:0] m_mem_data;
+
+    /* Writeback stage variables. */
+    wire  [4:0] w_dst_reg;
+    wire        w_reg_write;
+    wire        w_mem_to_reg;
+    wire [31:0] w_alu_result;
+    wire [31:0] w_mem_data;
+    wire [31:0] w_write_data;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////  FETCH  //////////////////////////////////////////////
@@ -94,9 +104,9 @@ module processor
     (
         .clock          (clock),
         .reset          (reset),
-        .reg_write      (),
-        .reg_to_write   (),
-        .write_data     (),
+        .reg_write      (w_reg_write),
+        .reg_to_write   (w_dst_reg),
+        .write_data     (w_write_data),
         .reg_to_read_1  (d_src_reg_1),
         .reg_to_read_2  (d_src_reg_2),
         .read_data_1    (d_read_data_1),
@@ -231,12 +241,14 @@ module processor
     (
         .clock         (clock),
         .reset         (reset),
+        .x_dst_reg     (x_dst_reg),
         .x_mem_read    (x_mem_read),
         .x_mem_write   (x_mem_write),
         .x_mem_byte    (x_mem_byte),
         .x_reg_write   (x_reg_write),
         .x_mem_to_reg  (x_mem_to_reg),
         .x_alu_result  (x_alu_result),
+        .m_dst_reg     (m_dst_reg),
         .m_mem_read    (m_mem_read),
         .m_mem_write   (m_mem_write),
         .m_mem_byte    (m_mem_byte),
@@ -249,11 +261,40 @@ module processor
 ////////////////////////////////////////////  MEMORY  //////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /* Data memory interface. */
+    /* Data memory interface. TODO: mocked for now. Make it a proper memory controller */
     data_mem dmem
     (
-        .clock  (clock)
+        .clock        (clock),
+        .read_cmd     (m_mem_read),
+        .write_cmd    (m_mem_write),
+        .byte_access  (m_mem_byte),
+        .address      (m_alu_result),
+        .data         (m_mem_data)
     );
+
+    /* Memory to writeback pipeline register. */
+    memory_to_writeback m2w
+    (
+        .clock         (clock),
+        .reset         (reset),
+        .m_dst_reg     (m_dst_reg),
+        .m_reg_write   (m_reg_write),
+        .m_mem_to_reg  (m_mem_to_reg),
+        .m_alu_result  (m_alu_result),
+        .m_mem_data    (m_mem_data),
+        .w_dst_reg     (w_dst_reg),
+        .w_reg_write   (w_reg_write),
+        .w_mem_to_reg  (w_mem_to_reg),
+        .w_alu_result  (w_alu_result),
+        .w_mem_data    (w_mem_data)
+    );
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////  WRITEBACK  /////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /* Compute data to be written back to register. */
+    assign w_write_data = w_mem_to_reg ? w_mem_data : w_alu_result;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
