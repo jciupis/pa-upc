@@ -294,7 +294,13 @@ module processor
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /* Compute data to be written back to register. */
-    assign w_write_data = w_mem_to_reg ? w_mem_data : w_alu_result;
+    mux2 write_data_src
+    (
+        .sel  (w_mem_to_reg),
+        .in0  (w_alu_result),
+        .in1  (w_mem_data),
+        .out  (w_write_data)
+    );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
