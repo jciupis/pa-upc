@@ -6,6 +6,18 @@ module processor
 
 `include "parameters.v"
 
+/* List of TODO's:
+ * 1. Extend the testbench to feature all instructions that the processor should support.
+ * 2. Fill the code of the data memory interface API.
+ * 3. Handle adding LOAD operands in ALU. It's not supported now (A or B should be output of a mux).
+ * 4. Make the EXECUTE stage last 5 cycles.
+ * 5. Figure out how to approach cache (I don't have any ideas yet). Take into account 5 cycles long
+ *    cache access, cache misses etc.
+ *
+ * Solving 1-3 should result in an entirely functional, 5-stage processor. Point 2 could be synchronized
+ * with point 5, so that effort isn't put into writing a useless data memory controller.
+ */
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////  DECLARATIONS  ///////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -261,7 +273,7 @@ module processor
 ////////////////////////////////////////////  MEMORY  //////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /* Data memory interface. TODO: mocked for now. Make it a proper memory controller */
+    /* Data memory interface. */
     data_mem dmem
     (
         .clock        (clock),
