@@ -15,15 +15,15 @@ module processor
     wire [31:0] f_pc_out;    // Current value of the PC.
     wire [31:0] f_pc_add4;   // Next value of the PC (no support for branches yet).
     wire [31:0] f_instr;     // Fetched instruction.
-    wire [31:0] mock_jmp_pc; // TODO: a mocked signal to fill an empty input. Change it to sth meaningful
 
     /* Decode stage variables. */
+    wire [1:0]  d_pc_src;
     wire [31:0] d_instr;
     wire [31:0] d_pc;
     wire [6:0]  d_opcode;
-    wire [5:0]  d_dst_reg;
-    wire [5:0]  d_src_reg_1;
-    wire [5:0]  d_src_reg_2;
+    wire [4:0]  d_dst_reg;
+    wire [4:0]  d_src_reg_1;
+    wire [4:0]  d_src_reg_2;
     wire [14:0] d_mem_offset;
     wire [14:0] d_brn_offset;
     wire [19:0] d_jmp_offset;
@@ -36,10 +36,15 @@ module processor
     wire        d_mem_to_reg;
 
     /* Execute stage variables. */
+    wire [1:0]  x_pc_src;
+    wire        x_srcs_equal;
+    wire [31:0] x_brn_target_addr;
+    wire [31:0] x_jmp_target_addr;
+    wire [31:0] x_pc;
     wire [6:0]  x_opcode;
-    wire [5:0]  x_dst_reg;
-    wire [5:0]  x_src_reg_1;
-    wire [5:0]  x_src_reg_2;
+    wire [4:0]  x_dst_reg;
+    wire [4:0]  x_src_reg_1;
+    wire [4:0]  x_src_reg_2;
     wire [14:0] x_mem_offset;
     wire [14:0] x_brn_offset;
     wire [19:0] x_jmp_offset;
@@ -106,12 +111,14 @@ module processor
         .C  (f_pc_add4)
     );
 
-    /* PC source multiplexer for branch & jump support. TODO: mocked for now. fix it */
-    mux2 pc_src
+    /* PC source multiplexer for branch & jump support. */
+    mux4 next_pc
     (
-        .sel  (1'b0),
+        .sel  (x_pc_src),
         .in0  (f_pc_add4),
-        .in1  (mock_jmp_pc),
+        .in1  (x_brn_target_addr),
+        .in2  (x_jmp_target_addr),
+        .in3  (32'hxxxx_xxxx),
         .out  (f_pc_in)
     );
 
@@ -133,7 +140,6 @@ module processor
     /* Decoding module. */
     decoder decoder
     (
-        .clock        (clock),
         .instruction  (d_instr),
         .opcode       (d_opcode),
         .dst_reg      (d_dst_reg),
@@ -154,6 +160,7 @@ module processor
     (
         .clock         (clock),
         .reset         (reset),
+        .d_pc          (d_pc),
         .d_opcode      (d_opcode),
         .d_dst_reg     (d_dst_reg),
         .d_src_reg_1   (d_src_reg_1),
@@ -168,6 +175,7 @@ module processor
         .d_mem_byte    (d_mem_byte),
         .d_reg_write   (d_reg_write),
         .d_mem_to_reg  (d_mem_to_reg),
+        .x_pc          (x_pc),
         .x_opcode      (x_opcode),
         .x_dst_reg     (x_dst_reg),
         .x_src_reg_1   (x_src_reg_1),
@@ -191,11 +199,31 @@ module processor
     /* Arithmetic logic unit. */
     alu alu
     (
-        .clock   (clock),
         .opcode  (x_opcode),
         .A       (x_read_data_1),
         .B       (x_read_data_2),
+        .equal   (x_srcs_equal),
         .result  (x_alu_result)
+    );
+
+    /* Compute branch target address. */
+    add brn_addr
+    (
+        .A  (x_pc),
+        .B  ({17'b0, x_brn_offset}),
+        .C  (x_brn_target_addr)
+    );
+
+    /* Compute jump target address. */
+    assign x_jmp_target_addr = {12'b0, x_jmp_offset};
+
+    /* Compute next PC source. */
+    pc_src pc_src
+    (
+        .clock  (clock),
+        .opcode (x_opcode),
+        .operands_equal (x_srcs_equal),
+        .pc_src (x_pc_src)
     );
 
     /* Execute to memory pipeline register. */
