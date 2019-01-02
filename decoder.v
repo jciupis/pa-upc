@@ -1,12 +1,10 @@
 module decoder
 (
-    input clock,                // Clock.
-
     input  [31:0] instruction,  // Fetched instruction.
     output [6:0]  opcode,       // Operation code.
-    output [5:0]  dst_reg,      // Destination register index.
-    output [5:0]  src_reg_1,    // First source register index.
-    output [5:0]  src_reg_2,    // Second source register index.
+    output [4:0]  dst_reg,      // Destination register index.
+    output [4:0]  src_reg_1,    // First source register index.
+    output [4:0]  src_reg_2,    // Second source register index.
     output [14:0] mem_offset,   // M-type operations offset.
     output [14:0] brn_offset,   // B-type operations offset.
     output [19:0] jmp_offset,   // Jump offset.
