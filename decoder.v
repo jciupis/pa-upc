@@ -30,11 +30,11 @@ module decoder
     assign brn_offset = {instruction[24:20], instruction[9:0]};
     assign jmp_offset = {instruction[24:20], instruction[14:0]};
     
-    assign mem_read   = mem_access[0];
-    assign mem_write  = mem_access[1];
+    assign mem_read   = mem_access[4];
+    assign mem_write  = mem_access[3];
     assign mem_byte   = mem_access[2];
-    assign reg_write  = mem_access[3];
-    assign mem_to_reg = mem_access[4];
+    assign reg_write  = mem_access[1];
+    assign mem_to_reg = mem_access[0];
     
     always @(*) begin
         case (opcode)
