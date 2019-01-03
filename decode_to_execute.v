@@ -9,11 +9,12 @@ module decode_to_execute
     input [4:0]  d_dst_reg,           // Destination register index.
     input [4:0]  d_src_reg_1,         // First source register index.
     input [4:0]  d_src_reg_2,         // Second source register index.
-    input [14:0] d_mem_offset,        // M-type operations offset.
-    input [14:0] d_brn_offset,        // B-type operations offset.
+    input [31:0] d_mem_offset,        // M-type operations offset.
+    input [31:0] d_brn_offset,        // B-type operations offset.
     input [19:0] d_jmp_offset,        // Jump offset.
     input [31:0] d_read_data_1,       // First source register content.
     input [31:0] d_read_data_2,       // Second source register content.
+    input        d_alu_imm_src,       // Flag indicating that an immediate should be used as ALU operand.
     input        d_mem_read,          // Flag indicating that data memory should be read.
     input        d_mem_write,         // Flag indicating that data memory should be written.
     input        d_mem_byte,          // Flag indicating that memory should be accessed bite-wise.
@@ -26,11 +27,12 @@ module decode_to_execute
     output reg [4:0]  x_dst_reg,      // Destination register index.
     output reg [4:0]  x_src_reg_1,    // First source register index.
     output reg [4:0]  x_src_reg_2,    // Second source register index.
-    output reg [14:0] x_mem_offset,   // M-type operations offset.
-    output reg [14:0] x_brn_offset,   // B-type operations offset.
+    output reg [31:0] x_mem_offset,   // M-type operations offset.
+    output reg [31:0] x_brn_offset,   // B-type operations offset.
     output reg [19:0] x_jmp_offset,   // Jump offset.
     output reg [31:0] x_read_data_1,  // First source register content.
     output reg [31:0] x_read_data_2,  // Second source register content.
+    output reg        x_alu_imm_src,  // Flag indicating that an immediate should be used as ALU operand.
     output reg        x_mem_read,     // Flag indicating that data memory should be read.
     output reg        x_mem_write,    // Flag indicating that data memory should be written.
     output reg        x_mem_byte,     // Flag indicating that memory should be accessed bite-wise.
@@ -44,11 +46,12 @@ module decode_to_execute
         x_dst_reg     <= (reset) ?  6'b0 : d_dst_reg;
         x_src_reg_1   <= (reset) ?  6'b0 : d_src_reg_1;
         x_src_reg_2   <= (reset) ?  6'b0 : d_src_reg_2;
-        x_mem_offset  <= (reset) ? 15'b0 : d_mem_offset;
-        x_brn_offset  <= (reset) ? 15'b0 : d_brn_offset;
+        x_mem_offset  <= (reset) ? 32'b0 : d_mem_offset;
+        x_brn_offset  <= (reset) ? 32'b0 : d_brn_offset;
         x_jmp_offset  <= (reset) ? 20'b0 : d_jmp_offset;
         x_read_data_1 <= (reset) ? 32'b0 : d_read_data_1;
         x_read_data_2 <= (reset) ? 32'b0 : d_read_data_2;
+        x_alu_imm_src <= (reset) ?  1'b0 : d_alu_imm_src;
         x_mem_read    <= (reset) ?  1'b0 : d_mem_read;
         x_mem_write   <= (reset) ?  1'b0 : d_mem_write;
         x_mem_byte    <= (reset) ?  1'b0 : d_mem_byte;
