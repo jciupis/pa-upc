@@ -29,18 +29,18 @@ module processor
     wire [31:0] f_instr;     // Fetched instruction.
 
     /* Decode stage variables. */
-    wire [1:0]  d_pc_src;
     wire [31:0] d_instr;
     wire [31:0] d_pc;
     wire [6:0]  d_opcode;
     wire [4:0]  d_dst_reg;
     wire [4:0]  d_src_reg_1;
     wire [4:0]  d_src_reg_2;
-    wire [14:0] d_mem_offset;
-    wire [14:0] d_brn_offset;
+    wire [31:0] d_mem_offset;
+    wire [31:0] d_brn_offset;
     wire [19:0] d_jmp_offset;
     wire [31:0] d_read_data_1;
     wire [31:0] d_read_data_2;
+    wire        d_alu_imm_src;
     wire        d_mem_read;
     wire        d_mem_write;
     wire        d_mem_byte;
@@ -57,12 +57,14 @@ module processor
     wire [4:0]  x_dst_reg;
     wire [4:0]  x_src_reg_1;
     wire [4:0]  x_src_reg_2;
-    wire [14:0] x_mem_offset;
-    wire [14:0] x_brn_offset;
+    wire [31:0] x_mem_offset;
+    wire [31:0] x_brn_offset;
     wire [19:0] x_jmp_offset;
     wire [31:0] x_read_data_1;
     wire [31:0] x_read_data_2;
+    wire [31:0] x_read_data_imm;
     wire [31:0] x_alu_result;
+    wire        x_alu_imm_src;
     wire        x_mem_read;
     wire        x_mem_write;
     wire        x_mem_byte;
@@ -170,6 +172,7 @@ module processor
         .mem_offset   (d_mem_offset),
         .brn_offset   (d_brn_offset),
         .jmp_offset   (d_jmp_offset),
+        .alu_imm_src  (d_alu_imm_src),
         .mem_read     (d_mem_read),
         .mem_write    (d_mem_write),
         .mem_byte     (d_mem_byte),
@@ -192,6 +195,7 @@ module processor
         .d_jmp_offset  (d_jmp_offset),
         .d_read_data_1 (d_read_data_1),
         .d_read_data_2 (d_read_data_2),
+        .d_alu_imm_src (d_alu_imm_src),
         .d_mem_read    (d_mem_read),
         .d_mem_write   (d_mem_write),
         .d_mem_byte    (d_mem_byte),
@@ -207,6 +211,7 @@ module processor
         .x_jmp_offset  (x_jmp_offset),
         .x_read_data_1 (x_read_data_1),
         .x_read_data_2 (x_read_data_2),
+        .x_alu_imm_src (x_alu_imm_src),
         .x_mem_read    (x_mem_read),
         .x_mem_write   (x_mem_write),
         .x_mem_byte    (x_mem_byte),
@@ -218,34 +223,43 @@ module processor
 ///////////////////////////////////////////  EXECUTE  /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /* Compute ALU operand. */
+    mux2 alu_operand_src
+    (
+        .sel(x_alu_imm_src),
+        .in0(x_read_data_2),
+        .in1(x_mem_offset),
+        .out(x_read_data_imm)
+    );
+
     /* Arithmetic logic unit. */
     alu alu
     (
         .opcode  (x_opcode),
         .A       (x_read_data_1),
-        .B       (x_read_data_2),
+        .B       (x_read_data_imm),
         .equal   (x_srcs_equal),
         .result  (x_alu_result)
     );
 
-    /* Compute branch target address. */
+    /* Compute branch target address. TODO: Should A be equal to PC or PC + 4?*/
     add brn_addr
     (
         .A  (x_pc),
-        .B  ({17'b0, x_brn_offset}),
+        .B  (x_brn_offset),
         .C  (x_brn_target_addr)
     );
 
     /* Compute jump target address. */
-    assign x_jmp_target_addr = {12'b0, x_jmp_offset};
+    assign x_jmp_target_addr = {x_pc[31:22], x_jmp_offset, 2'b00};
 
     /* Compute next PC source. */
     pc_src pc_src
     (
-        .clock  (clock),
-        .opcode (x_opcode),
+        .clock          (clock),
+        .opcode         (x_opcode),
         .operands_equal (x_srcs_equal),
-        .pc_src (x_pc_src)
+        .pc_src         (x_pc_src)
     );
 
     /* Execute to memory pipeline register. */
