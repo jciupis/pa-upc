@@ -16,10 +16,9 @@ module alu
 
     always @(*) begin
         case (opcode)
-            `OP_ADD : result <= add_result;
             `OP_SUB : result <= sub_result;
             `OP_MUL : result <= mul_result[31:0];
-            default : result <= 32'hxxxx_xxxx;
+            default : result <= add_result;
         endcase
     end
 
