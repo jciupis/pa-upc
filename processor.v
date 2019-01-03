@@ -113,7 +113,7 @@ module processor
         .Q       (f_pc_out)
     );
 
-    /* Register file. TODO: fill the write signals. */
+    /* Register file. */
     register_file registers
     (
         .clock          (clock),
