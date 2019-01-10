@@ -4,7 +4,7 @@ module instr_mem_ctrl
     input reset,
     input [31:0] address,
     output [31:0] data,
-    output valid
+    output stall
 );
 
     /* Cache inputs. */
@@ -30,7 +30,7 @@ module instr_mem_ctrl
         .reset        (reset),
         .write_word   (1'b0),        // Instruction memory is never written to word-wise.
         .write_block  (mem_valid),   // Write to cache only when memory content is ready.
-        .comp         (~mem_enable), // Stop comparing tags when cache miss is detected.
+        .comp         (1'b1), // Stop comparing tags when cache miss is detected.
         .byte_access  (1'b0),        // Instruction cache is never accesses byte-wise.
         .index        (cache_line),  // Select cache block.
         .word         (cache_word),  // Select cache word.
@@ -63,6 +63,6 @@ module instr_mem_ctrl
 
     /* Drive module's outputs. */
     assign data  = cache_data;
-    assign valid = cache_hit && cache_valid;
+    assign stall = mem_enable;
 
 endmodule

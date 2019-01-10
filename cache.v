@@ -27,11 +27,22 @@ module cache
 
     wire tags_equal;         // Flag that indicates if tags are equal.
     wire should_write_word;  // Flag that indicates if a hit occurred and cache can be written to.
+    wire [31:0] word_out;
 
     reg [127:0] cache_data [3:0];
     reg  [25:0] cache_tags [3:0];
     reg   [3:0] cache_valid;
     reg   [3:0] cache_dirty;
+
+    integer i;
+    initial begin
+        for (i = 0; i < 4; i = i + 1) begin
+            cache_valid[i] =   1'b0;
+            cache_dirty[i] =   1'b0;
+            cache_tags[i]  =  26'b0;
+            cache_data[i]  = 128'b0;
+        end
+    end
 
     /* Write a word to cache. */
     always @(posedge clock) begin
@@ -52,13 +63,16 @@ module cache
     end
 
     /* Drive module's helper variables. */
-    assign tags_equal         = (tag_in == cache_tags[index]);
-    assign should_write_word  = reset ? 1'b0 : (write_word && hit);
+    assign tags_equal        = (tag_in == cache_tags[index]);
+    assign should_write_word = reset ? 1'b0 : (write_word && hit);
+    assign word_out          = word == 2'b00 ? cache_data[index][31:0] :
+                               (word == 2'b01 ? cache_data[index][63:32] :
+                               (word == 2'b10 ? cache_data[index][95:64] : cache_data[index][127:96]));
 
     /* Drive module's outputs. */
     assign hit      = reset ?  1'b0 : comp && tags_equal && valid;
     assign dirty    = reset ?  1'b0 : cache_dirty[index];
     assign valid    = reset ?  1'b0 : cache_valid[index];
-    assign data_out = reset ? 32'b0 : cache_data[index][word];
+    assign data_out = reset ? 32'b0 : word_out;
 
 endmodule
