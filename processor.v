@@ -6,27 +6,16 @@ module processor
 
 `include "parameters.v"
 
-/* List of TODO's:
- * 1. Extend the testbench to feature all instructions that the processor should support.
- * 2. Fill the code of the data memory interface API.
- * 3. Handle adding LOAD operands in ALU. It's not supported now (A or B should be output of a mux).
- * 4. Make the EXECUTE stage last 5 cycles.
- * 5. Figure out how to approach cache (I don't have any ideas yet). Take into account 5 cycles long
- *    cache access, cache misses etc.
- *
- * Solving 1-3 should result in an entirely functional, 5-stage processor. Point 2 could be synchronized
- * with point 5, so that effort isn't put into writing a useless data memory controller.
- */
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////  DECLARATIONS  ///////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     /* Fetch stage variables. */
-    wire [31:0] f_pc_in;     // Previous value of the PC.
-    wire [31:0] f_pc_out;    // Current value of the PC.
-    wire [31:0] f_pc_add4;   // Next value of the PC (no support for branches yet).
-    wire [31:0] f_instr;     // Fetched instruction.
+    wire [31:0] f_pc_in;      // Previous value of the PC.
+    wire [31:0] f_pc_out;     // Current value of the PC.
+    wire [31:0] f_pc_add4;    // Next value of the PC (no support for branches yet).
+    wire [31:0] f_instr;      // Fetched instruction.
+    wire        f_imem_stall; // Flag that indicates pipeline should stall while waiting for instruction cache to update.
 
     /* Decode stage variables. */
     wire [31:0] d_instr;
@@ -93,14 +82,14 @@ module processor
 ////////////////////////////////////////////  FETCH  //////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /* There is no support for branch & jump instructions yet. */
-    /* There is also no support for exceptions and other more complex stuff. */
-
     /* Instruction memory interface. */
-    instruction_mem imem
+    instr_mem_ctrl imem
     (
-        .address  (f_pc_out[9:2]),
-        .data     (f_instr)
+        .clock  (clock),
+        .reset  (reset),
+        .address(f_pc_out),
+        .data   (f_instr),
+        .stall  (f_imem_stall)
     );
 
     /* Program Counter. */
@@ -108,7 +97,7 @@ module processor
     (
         .clock   (clock),
         .reset   (reset),
-        .enable  (1'b1),
+        .enable  (~f_imem_stall),
         .D       (f_pc_in),
         .Q       (f_pc_out)
     );
@@ -153,6 +142,7 @@ module processor
         .reset    (reset),
         .f_instr  (f_instr),
         .f_pc     (f_pc_out),
+        .f_stall  (f_imem_stall),
         .d_instr  (d_instr),
         .d_pc     (d_pc)
     );
