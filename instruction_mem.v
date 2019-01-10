@@ -18,6 +18,8 @@ module instruction_mem
 
     initial begin
         $readmemh("C:/Users/JC/repo/pa-upc/tests/instructions.txt", instruction_mem);
+        counter = 4'b0;
+        should_read = 1'b1;
     end
 
     /* Detect enable signal's rising edge. */
@@ -52,8 +54,8 @@ module instruction_mem
     end
     
     /* Drive module's helper variable. */
-    assign read_request       = !previous_enable && enable;
-    assign block_aligned_addr = address[7:0] & 8'b11111100;
+    assign read_request       = ~previous_enable & enable;
+    assign block_aligned_addr = address[9:2] & 8'b11111100;
 
     /* Drive module's outputs. */
     assign valid = seq_valid;
