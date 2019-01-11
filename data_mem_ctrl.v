@@ -67,7 +67,12 @@ module data_mem_ctrl
         .read_valid     (mem_read_valid)
     );
 
-    /* Drive helper variables. */
+    /* Drive cache helper variables. */
+    assign cache_tag_in = address[31:6];
+    assign cache_line   = address[5:4];
+    assign cache_word   = address[3:2];
+
+    /* Drive memory helper variables. */
     assign mem_read  = ~cache_hit || ~cache_valid;
     assign mem_write = ~cache_hit && cache_dirty;
     assign mem_write_addr = {cache_tag_out, 6'b0};

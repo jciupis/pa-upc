@@ -87,7 +87,7 @@ module processor
 
     /* Pipeline stall assignments. */
     assign w_stall = m_stall;
-    assign m_stall = f_stall | m_dmem_stall;
+    assign m_stall = f_stall | (m_dmem_stall & (m_dmem_stall !== 1'bx));
     assign x_stall = m_stall;
     assign d_stall = m_stall;
     assign f_stall = f_imem_stall;
@@ -299,7 +299,7 @@ module processor
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /* Data memory controller. */
-    data_mem_ctrl
+    data_mem_ctrl data_mem
     (
         .clock       (clock),
         .reset       (reset),
