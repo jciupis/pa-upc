@@ -6,7 +6,6 @@ module cache
     /* Cache inputs. */
     input         write_word,  // Flag that indicates that a specific word should be written to.
     input         write_block, // Flag that indicates that a cache block should be updated with memory content.
-    input         comp,        // Compare signal. When high, the cache compares tags to indicate if a hit occurred.
     input         byte_access, // Flag that indicates byte-wise access.
     input   [1:0] index,       // Address bits used to index lines of the cache memory.
     input   [1:0] word,        // Address bits used to select the word to access in the cache line.
@@ -16,10 +15,12 @@ module cache
     input [127:0] block_in,    // Block to update the cache with in location specified by index.
 
     /* Cache outputs. */
-    output        hit,         // Flag that indicates that the specified tag matches tag_in.
-    output        dirty,       // Flag that indicates whether a given cache line was written to.
-    output [31:0] data_out,    // Data selected by index and word.
-    output        valid        // Flag that indicates the state of the valid bit.
+    output         hit,        // Flag that indicates that the specified tag matches tag_in.
+    output         dirty,      // Flag that indicates whether a given cache line was written to.
+    output [31:0]  word_out,   // Data selected by index and word.
+    output         word_valid, // Flag that indicates the state of the valid bit.
+    output [127:0] block_out,  // Block read to update external memory.
+    output  [25:0] tag_out
 );
 
     /* Since cache consists of 4 blocks of 4 words each, only 6 bits are necessary to index an entry
@@ -27,7 +28,7 @@ module cache
 
     wire tags_equal;         // Flag that indicates if tags are equal.
     wire should_write_word;  // Flag that indicates if a hit occurred and cache can be written to.
-    wire [31:0] word_out;
+    wire [31:0] read_word;
 
     reg [127:0] cache_data [3:0];
     reg  [25:0] cache_tags [3:0];
@@ -65,14 +66,16 @@ module cache
     /* Drive module's helper variables. */
     assign tags_equal        = (tag_in == cache_tags[index]);
     assign should_write_word = reset ? 1'b0 : (write_word && hit);
-    assign word_out          = word == 2'b00 ? cache_data[index][31:0] :
-                               (word == 2'b01 ? cache_data[index][63:32] :
-                               (word == 2'b10 ? cache_data[index][95:64] : cache_data[index][127:96]));
+    assign read_word         = word == 2'b00 ? cache_data[index][31:0] :
+                              (word == 2'b01 ? cache_data[index][63:32] :
+                              (word == 2'b10 ? cache_data[index][95:64] : cache_data[index][127:96]));
 
     /* Drive module's outputs. */
-    assign hit      = reset ?  1'b0 : comp && tags_equal && valid;
-    assign dirty    = reset ?  1'b0 : cache_dirty[index];
-    assign valid    = reset ?  1'b0 : cache_valid[index];
-    assign data_out = reset ? 32'b0 : word_out;
+    assign hit        = reset ?   1'b0 : tags_equal && word_valid;
+    assign dirty      = reset ?   1'b0 : cache_dirty[index];
+    assign word_out   = reset ?  32'b0 : read_word;
+    assign word_valid = reset ?   1'b0 : cache_valid[index];
+    assign block_out  = reset ? 127'b0 : cache_data[index];
+    assign tag_out    = reset ?  26'b0 : cache_tags[index];
 
 endmodule
