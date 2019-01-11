@@ -15,6 +15,7 @@ module processor
     wire [31:0] f_pc_out;     // Current value of the PC.
     wire [31:0] f_pc_add4;    // Next value of the PC (no support for branches yet).
     wire [31:0] f_instr;      // Fetched instruction.
+    wire        f_stall;
     wire        f_imem_stall; // Flag that indicates pipeline should stall while waiting for instruction cache to update.
 
     /* Decode stage variables. */
@@ -35,6 +36,7 @@ module processor
     wire        d_mem_byte;
     wire        d_reg_write;
     wire        d_mem_to_reg;
+    wire        d_stall;
 
     /* Execute stage variables. */
     wire [1:0]  x_pc_src;
@@ -59,6 +61,7 @@ module processor
     wire        x_mem_byte;
     wire        x_reg_write;
     wire        x_mem_to_reg;
+    wire        x_stall;
 
     /* Memory stage variables. */
     wire  [4:0] m_dst_reg;
@@ -68,7 +71,10 @@ module processor
     wire        m_reg_write;
     wire        m_mem_to_reg;
     wire [31:0] m_alu_result;
-    wire [31:0] m_mem_data;
+    wire [31:0] m_mem_read_data;
+    wire [31:0] m_mem_write_data;
+    wire        m_dmem_stall;
+    wire        m_stall;
 
     /* Writeback stage variables. */
     wire  [4:0] w_dst_reg;
@@ -77,6 +83,14 @@ module processor
     wire [31:0] w_alu_result;
     wire [31:0] w_mem_data;
     wire [31:0] w_write_data;
+    wire        w_stall;
+
+    /* Pipeline stall assignments. */
+    assign w_stall = m_stall;
+    assign m_stall = f_stall | m_dmem_stall;
+    assign x_stall = m_stall;
+    assign d_stall = m_stall;
+    assign f_stall = f_imem_stall;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////  FETCH  //////////////////////////////////////////////
@@ -97,7 +111,7 @@ module processor
     (
         .clock   (clock),
         .reset   (reset),
-        .enable  (~f_imem_stall),
+        .enable  (~f_stall),
         .D       (f_pc_in),
         .Q       (f_pc_out)
     );
@@ -142,7 +156,8 @@ module processor
         .reset    (reset),
         .f_instr  (f_instr),
         .f_pc     (f_pc_out),
-        .f_stall  (f_imem_stall),
+        .f_stall  (f_stall),
+        .d_stall  (d_stall),
         .d_instr  (d_instr),
         .d_pc     (d_pc)
     );
@@ -191,6 +206,8 @@ module processor
         .d_mem_byte    (d_mem_byte),
         .d_reg_write   (d_reg_write),
         .d_mem_to_reg  (d_mem_to_reg),
+        .d_stall       (d_stall),
+        .x_stall       (x_stall),
         .x_pc          (x_pc),
         .x_opcode      (x_opcode),
         .x_dst_reg     (x_dst_reg),
@@ -255,37 +272,43 @@ module processor
     /* Execute to memory pipeline register. */
     execute_to_memory x2m
     (
-        .clock         (clock),
-        .reset         (reset),
-        .x_dst_reg     (x_dst_reg),
-        .x_mem_read    (x_mem_read),
-        .x_mem_write   (x_mem_write),
-        .x_mem_byte    (x_mem_byte),
-        .x_reg_write   (x_reg_write),
-        .x_mem_to_reg  (x_mem_to_reg),
-        .x_alu_result  (x_alu_result),
-        .m_dst_reg     (m_dst_reg),
-        .m_mem_read    (m_mem_read),
-        .m_mem_write   (m_mem_write),
-        .m_mem_byte    (m_mem_byte),
-        .m_reg_write   (m_reg_write),
-        .m_mem_to_reg  (m_mem_to_reg),
-        .m_alu_result  (m_alu_result)
+        .clock             (clock),
+        .reset             (reset),
+        .x_dst_reg         (x_dst_reg),
+        .x_mem_read        (x_mem_read),
+        .x_mem_write       (x_mem_write),
+        .x_mem_byte        (x_mem_byte),
+        .x_reg_write       (x_reg_write),
+        .x_mem_to_reg      (x_mem_to_reg),
+        .x_mem_write_data  (x_read_data_2),
+        .x_alu_result      (x_alu_result),
+        .x_stall           (x_stall),
+        .m_stall           (m_stall),
+        .m_dst_reg         (m_dst_reg),
+        .m_mem_read        (m_mem_read),
+        .m_mem_write       (m_mem_write),
+        .m_mem_byte        (m_mem_byte),
+        .m_reg_write       (m_reg_write),
+        .m_mem_to_reg      (m_mem_to_reg),
+        .m_mem_write_data  (m_mem_write_data),
+        .m_alu_result      (m_alu_result)
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////  MEMORY  //////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /* Data memory interface. */
-    data_mem dmem
+    /* Data memory controller. */
+    data_mem_ctrl
     (
-        .clock        (clock),
-        .read_cmd     (m_mem_read),
-        .write_cmd    (m_mem_write),
-        .byte_access  (m_mem_byte),
-        .address      (m_alu_result),
-        .data         (m_mem_data)
+        .clock       (clock),
+        .reset       (reset),
+        .read        (m_mem_read),
+        .write       (m_mem_write),
+        .address     (m_alu_result),
+        .write_data  (m_mem_write_data),
+        .read_data   (m_mem_read_data),
+        .stall       (m_dmem_stall)
     );
 
     /* Memory to writeback pipeline register. */
@@ -297,7 +320,9 @@ module processor
         .m_reg_write   (m_reg_write),
         .m_mem_to_reg  (m_mem_to_reg),
         .m_alu_result  (m_alu_result),
-        .m_mem_data    (m_mem_data),
+        .m_mem_data    (m_mem_read_data),
+        .m_stall       (m_stall),
+        .w_stall       (w_stall),
         .w_dst_reg     (w_dst_reg),
         .w_reg_write   (w_reg_write),
         .w_mem_to_reg  (w_mem_to_reg),

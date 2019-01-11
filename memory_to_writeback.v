@@ -9,8 +9,10 @@ module memory_to_writeback
     input        m_mem_to_reg,  // Flag indicating if register file write data is ALU output (0) or data memory (1).
     input [31:0] m_alu_result,  // Result of the ALU operation.
     input [31:0] m_mem_data,    // Data read from memory.
+    input        m_stall,       // Flag indicating that this stage is stalled.
     
     /* Writeback stage variables. */
+    input             w_stall,       // Flag indicating that this stage is stalled.
     output reg  [4:0] w_dst_reg,     // Destination register index.
     output reg        w_reg_write,   // Flag indicating that register file should be written.
     output reg        w_mem_to_reg,  // Flag indicating if register file write data is ALU output (0) or data memory (1).
@@ -19,11 +21,11 @@ module memory_to_writeback
 );
 
     always @(posedge clock) begin
-        w_dst_reg    <= (reset) ?  5'b0 : m_dst_reg;
-        w_reg_write  <= (reset) ?  1'b0 : m_reg_write;
-        w_mem_to_reg <= (reset) ?  1'b0 : m_mem_to_reg;
-        w_alu_result <= (reset) ? 32'b0 : m_alu_result;
-        w_mem_data   <= (reset) ? 32'b0 : m_mem_data;
+        w_dst_reg    <= (reset) ?  5'b0 : (w_stall ? w_dst_reg                      : m_dst_reg);
+        w_reg_write  <= (reset) ?  1'b0 : (w_stall ? w_reg_write  : (m_stall ? 1'b0 : m_reg_write));
+        w_mem_to_reg <= (reset) ?  1'b0 : (w_stall ? w_mem_to_reg                   : m_mem_to_reg);
+        w_alu_result <= (reset) ? 32'b0 : (w_stall ? w_alu_result                   : m_alu_result);
+        w_mem_data   <= (reset) ? 32'b0 : (w_stall ? w_mem_data                     : m_mem_data);
     end
 
 endmodule
