@@ -14,8 +14,6 @@ module data_mem_ctrl
     wire  [1:0] cache_line;
     wire  [1:0] cache_word;
     wire [25:0] cache_tag_in;
-    wire        cache_write_word;
-    wire        cache_comp;
 
     /* Cache outputs. */
     wire         cache_hit;
@@ -73,11 +71,11 @@ module data_mem_ctrl
     assign cache_word   = address[3:2];
 
     /* Drive memory helper variables. */
-    assign mem_read  = ~cache_hit || ~cache_valid;
-    assign mem_write = ~cache_hit && cache_dirty;
+    assign mem_read  = (read | write) & (~cache_hit | ~cache_valid);
+    assign mem_write = (read | write) & (~cache_hit && cache_dirty);
     assign mem_write_addr = {cache_tag_out, 6'b0};
 
     /* Drive module's outputs. */
-    assign stall = (read && mem_read) || (write && mem_write);
+    assign stall = mem_read || mem_write;
 
 endmodule
