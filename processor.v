@@ -90,7 +90,7 @@ module processor
     assign m_stall = f_stall | (m_dmem_stall & (m_dmem_stall !== 1'bx));
     assign x_stall = m_stall;
     assign d_stall = m_stall;
-    assign f_stall = f_imem_stall;
+    assign f_stall = f_imem_stall | (m_dmem_stall & (m_dmem_stall !== 1'bx));
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////  FETCH  //////////////////////////////////////////////

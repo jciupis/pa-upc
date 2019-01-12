@@ -18,17 +18,25 @@ module data_mem
     reg         should_write;
     reg         previous_read;
     reg         should_read;
-    reg   [3:0] counter;
+    reg   [3:0] read_counter;
+    reg   [3:0] write_counter;
     reg  [31:0] data_mem [255:0];
     wire        write_request;
     wire        read_request;
     wire  [7:0] block_aligned_write;
     wire  [7:0] block_aligned_read;
 
+    /* Initialize data memory with zeros.
+     * Due to fetch-on-write policy on write misses, leaving it uninitialized leads to fetching
+     * unknown value of read_data (127'bx). */
+    integer i;
     initial begin
-        counter      = 4'b0;
-        should_read  = 1'b0;
-        should_write = 1'b0;
+        read_counter  = 4'b0;
+        write_counter = 4'b0;
+        should_read   = 1'b0;
+        should_write  = 1'b0;
+        for (i = 0; i < 256; i = i + 1)
+            data_mem[i] = 32'b0;
     end
 
     /* Detect write and read signals' rising edge. */
@@ -50,10 +58,10 @@ module data_mem
         // Processor requests memory read.
         if (should_read) begin
             // Start counting cycles to artificially make memory access long.
-            counter = counter + 1;
+            read_counter = read_counter + 1;
             // Reset the counter, access the memory, set the valid wire and reset the read request flag.
-            if (counter == 4'd10) begin
-                counter          <= 4'b0;
+            if (read_counter == 4'd10) begin
+                read_counter     <= 4'b0;
                 should_read      <= 1'b0;
                 seq_data [31: 0] <= data_mem[block_aligned_read];
                 seq_data [63:32] <= data_mem[block_aligned_read + 1];
@@ -70,10 +78,10 @@ module data_mem
         // Processor requests memory write.
         if (should_write) begin
             // Start counting cycles to artificially make memory access long.
-            counter = counter + 1;
+            write_counter = write_counter + 1;
             // Reset the counter, access the memory, set the done wire and reset the write request flag.
-            if (counter == 4'd10) begin
-                counter                           <= 4'b0;
+            if (write_counter == 4'd10) begin
+                write_counter                     <= 4'b0;
                 should_write                      <= 1'b0;
                 data_mem[block_aligned_write]     <= write_data [31: 0];
                 data_mem[block_aligned_write + 1] <= write_data [63:32];
@@ -81,11 +89,12 @@ module data_mem
                 data_mem[block_aligned_write + 3] <= write_data[127:96];
                 seq_write_done                    <= 1'b1;
             end
-        end
+        end else
+            seq_write_done = 1'b0;
     end
 
     /* Drive module's helper variable. */
-    assign read_request        = ~previous_read & read;
+    assign read_request        = (~previous_read & read) || (previous_read === 1'bx & read);
     assign write_request       = ~previous_write & write;
     assign block_aligned_read  = read_address[9:2] & 8'b11111100;
     assign block_aligned_write = write_address[9:2] & 8'b11111100;
