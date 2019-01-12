@@ -29,6 +29,7 @@ module cache
     wire tags_equal;         // Flag that indicates if tags are equal.
     wire should_write_word;  // Flag that indicates if a hit occurred and cache can be written to.
     wire [31:0] read_word;
+    wire [31:0] word_to_return;
 
     reg [127:0] cache_data [3:0];
     reg  [25:0] cache_tags [3:0];
@@ -48,9 +49,37 @@ module cache
     /* Write a word to cache. */
     always @(posedge clock) begin
         if (should_write_word) begin
-            cache_data[index][word] = word_in;
-            cache_dirty[index]      = 1'b1;
+            /* Cache should be written to byte-wise. */
+            if (byte_access) begin
+                case ({word, byte})
+                    4'b0000: cache_data[index]    [7:0] = word_in[7:0];
+                    4'b0001: cache_data[index]   [15:8] = word_in[7:0];
+                    4'b0010: cache_data[index]  [23:16] = word_in[7:0];
+                    4'b0011: cache_data[index]  [31:24] = word_in[7:0];
+                    4'b0100: cache_data[index]  [39:32] = word_in[7:0];
+                    4'b0101: cache_data[index]  [47:40] = word_in[7:0];
+                    4'b0110: cache_data[index]  [55:48] = word_in[7:0];
+                    4'b0111: cache_data[index]  [63:56] = word_in[7:0];
+                    4'b1000: cache_data[index]  [71:64] = word_in[7:0];
+                    4'b1001: cache_data[index]  [79:72] = word_in[7:0];
+                    4'b1010: cache_data[index]  [87:80] = word_in[7:0];
+                    4'b1011: cache_data[index]  [95:88] = word_in[7:0];
+                    4'b1100: cache_data[index] [103:96] = word_in[7:0];
+                    4'b1101: cache_data[index][111:104] = word_in[7:0];
+                    4'b1110: cache_data[index][119:112] = word_in[7:0];
+                    4'b1111: cache_data[index][127:120] = word_in[7:0];
+                endcase
+            /* Cache should be written to word-wise. */
+            end else begin
+                case (word)
+                    2'b00: cache_data[index]  [31:0] = word_in;
+                    2'b01: cache_data[index] [63:32] = word_in;
+                    2'b10: cache_data[index] [96:64] = word_in;
+                    2'b11: cache_data[index][127:96] = word_in;
+                endcase
+            end
         end
+        cache_dirty[index] = 1'b1;
     end
 
     /* Update a block of cache. */
@@ -69,11 +98,14 @@ module cache
     assign read_word         = word == 2'b00 ? cache_data[index][31:0] :
                               (word == 2'b01 ? cache_data[index][63:32] :
                               (word == 2'b10 ? cache_data[index][95:64] : cache_data[index][127:96]));
+    assign word_to_return    = byte_access ? (byte == 2'b00 ? {24'b0, read_word[7:0]}   :
+                                             (byte == 2'b01 ? {24'b0, read_word[15:8]}  :
+                                             (byte == 2'b10 ? {24'b0, read_word[23:16]} : {24'b0, read_word[31:24]}))) : read_word;
 
     /* Drive module's outputs. */
     assign hit        = reset ?   1'b0 : tags_equal && word_valid;
     assign dirty      = reset ?   1'b0 : cache_dirty[index];
-    assign word_out   = reset ?  32'b0 : read_word;
+    assign word_out   = reset ?  32'b0 : word_to_return;
     assign word_valid = reset ?   1'b0 : cache_valid[index];
     assign block_out  = reset ? 127'b0 : cache_data[index];
     assign tag_out    = reset ?  26'b0 : cache_tags[index];

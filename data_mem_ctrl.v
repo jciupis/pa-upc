@@ -4,6 +4,7 @@ module data_mem_ctrl
     input         reset,
     input         read,
     input         write,
+    input         byte_access,
     input  [31:0] address,
     input  [31:0] write_data,
     output [31:0] read_data,
@@ -13,6 +14,7 @@ module data_mem_ctrl
     /* Cache inputs. */
     wire  [1:0] cache_line;
     wire  [1:0] cache_word;
+    wire  [1:0] cache_byte;
     wire [25:0] cache_tag_in;
 
     /* Cache outputs. */
@@ -37,10 +39,10 @@ module data_mem_ctrl
         .reset        (reset),
         .write_word   (write),          // Pass the write word command to cache. 
         .write_block  (mem_read_valid), // Update cache's block only once it was retrieved from data memory.
-        .byte_access  (1'b0),           // Byte access is currently not supported.
+        .byte_access  (byte_access),    // Indicates if a single byte should be accessed.
         .index        (cache_line),     // Select cache block.
         .word         (cache_word),     // Select cache word.
-        .byte         (2'b0),           // Byte access is currently not supported.
+        .byte         (cache_byte),     // Select cache byte.
         .tag_in       (cache_tag_in),   // Tag to compare against.
         .word_in      (write_data),     // Pass the word to write.
         .block_in     (mem_read_data),  // Only update cache blocks with data memory content.
@@ -69,6 +71,7 @@ module data_mem_ctrl
     assign cache_tag_in = address[31:6];
     assign cache_line   = address[5:4];
     assign cache_word   = address[3:2];
+    assign cache_byte   = address[1:0];
 
     /* Drive memory helper variables. */
     assign mem_read  = (read | write) & (~cache_hit | ~cache_valid);
