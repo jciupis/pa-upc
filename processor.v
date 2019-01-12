@@ -305,6 +305,7 @@ module processor
         .reset       (reset),
         .read        (m_mem_read),
         .write       (m_mem_write),
+        .byte_access (m_mem_byte),
         .address     (m_alu_result),
         .write_data  (m_mem_write_data),
         .read_data   (m_mem_read_data),
