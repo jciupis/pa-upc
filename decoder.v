@@ -55,8 +55,8 @@ module decoder
             `OP_ADD : mem_access <= 5'b00010;
             `OP_SUB : mem_access <= 5'b00010;
             `OP_MUL : mem_access <= 5'b00010;
-            `OP_LDB : mem_access <= 5'b10101;
-            `OP_LDW : mem_access <= 5'b10001;
+            `OP_LDB : mem_access <= 5'b10111;
+            `OP_LDW : mem_access <= 5'b10011;
             `OP_STB : mem_access <= 5'b01100;
             `OP_STW : mem_access <= 5'b01000;
             default : mem_access <= 5'b00000;
