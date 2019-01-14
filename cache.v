@@ -78,8 +78,8 @@ module cache
                     2'b11: cache_data[index][127:96] = word_in;
                 endcase
             end
+            cache_dirty[index] = 1'b1;
         end
-        cache_dirty[index] = 1'b1;
     end
 
     /* Update a block of cache. */
