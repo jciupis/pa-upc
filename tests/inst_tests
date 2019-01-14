@@ -1,0 +1,97 @@
+Buffer sum
+
+ldb r4, rX, 2000 // r4 = 4
+ldb r1, rX, 2001 // r1 = 1
+add r8, r0, r0 // sum = 0;
+add r5, r0, r0 // i = 0
+ldb r11, rX, 2002	// i_l = 128
+// r6 contains a pointer to a
+ldw  r6, rX, 2100
+add r9, r6, r0 // initialize the offset in r9
+Loop: //r7 will hold the a[i] value
+	ldw r7, r9		// access a[i]
+	add r8, r8, r7	// sum += a[i]
+	add r9, r9, r4	// offset -> a[i+1]
+	add r5, r5, r1	// i++
+	beq r5, r11, end
+	jmp Loop
+end:
+	stw r8, rX 2080
+	nop
+
+
+
+Memcopy
+
+ldb r4, rX, 2000 // r4 = 4
+ldb r5, rX, 2001 // r5 = 5
+ldb r1, rX, 2002 // r1 = 1
+add r7, r0, r0 // i = 0
+ldb r11, rX, 2003	// i_l = 128
+
+ldw r8 @pa	// pointer to a
+add r9, r8, r0 // initialize the offset in r9
+L1:
+	stw r9, r5, 0	// store 5 to a[i]
+	add r9, r9, r4	// offset -> a[i+1]
+	add r7, r7, r1	// i++
+	beq r7, r11, next
+	jmp L1
+next:
+	ldw r6 @pb     // pointer to b
+	add r3, r6, r0 // initialize the b offset in r3
+	add r7, r0, r0 // i = 0
+	add r9, r8, r0 // initialize the a offset in r9
+L2:
+	ldw r2, r9, 0	// access a[i]
+	stw r2, r3, 0	// store b[i] = a[i]
+	add r9, r9, r4	// offset -> a[i+1]
+	add r3, r3, r4	// offset -> b[i+1]
+	add r7, r7, r1	// i++
+	beq r7, r11, end
+	jmp L2
+end:
+nop
+
+
+
+Matmul - INCOMPLETE
+
+ldb r4, @x // r4 = 4
+ldb r5, @y // r5 = 5
+ldb r1, @z // r1 = 1
+ldb r6, @z	// i_l = 128
+// r8, r9, r10, for i, j, k
+add r8, r0, r0 // i = 0
+add r9, r0, r0 // j = 0
+add r10,r0, r0 // k = 0
+// r11 r12 r13 for a, b, c offsets
+// r14 r15 r16 for a, b, c pointers
+ldw r14 @a
+ldw r15 @b
+ldw r16 @c
+add r11, r14, r0 //init offset a
+add r12, r15, r0 //init offset b
+add r13, r16, r0 //init offset c
+
+L1:
+nop
+L2:
+	add r3, r0, r0	// c[i][j] = 0
+	add r10,r0, r0	// k = 0
+L3:
+	//calculate offsets
+	
+	ldw r21, r11		// access a[i][k]
+	ldw r22, r12		// access b[k][j]
+	mul r17, r21, r22	// a*b
+	add r3, r3, r17		// c[i][j] += a[i][k] * b[k][j]
+	add r10, r10, r1	// k++
+	beq r10, r6, e_L3
+	jmp L3
+e_L3:
+	stw r3, r13
+	add r9, r9 ,r1		// j++
+	beq r9, r6, e_L2
+	jmp L2
+e_L2:
