@@ -1,10 +1,10 @@
 Buffer sum
 
-ldb r4, rX, 2000 // r4 = 4
-ldb r1, rX, 2001 // r1 = 1
+ldb r4, rX, 0 // r4 = 4
+ldb r1, rX, 1 // r1 = 1
 add r8, r0, r0 // sum = 0;
 add r5, r0, r0 // i = 0
-ldb r11, rX, 2002	// i_l = 128
+ldb r11, rX, 2	// i_l = 128
 // r6 contains a pointer to a
 ldw  r6, rX, 2100
 add r9, r6, r0 // initialize the offset in r9
@@ -79,19 +79,40 @@ nop
 L2:
 	add r3, r0, r0	// c[i][j] = 0
 	add r10,r0, r0	// k = 0
+
+	//mul r11, r8, r6     // a_index = 128*i
+	//mul r11, r11, r4    // multiply times 4 because we need the relevant address
+	add r11, r11, r14	// add the offset we found to the a start pointer a[i][0]
+
+
 L3:
 	//calculate offsets
-	
-	ldw r21, r11		// access a[i][k]
-	ldw r22, r12		// access b[k][j]
+
+	ldw r21, r11, 0		// access a[i][k]
+
+	mul r12, r10, r6	// b_index = 128*k
+	add r12, r12, r9	// b_index += j
+	mul r12, r12, r4
+	add r12, r12, r15	// b[k][j]
+
+	ldw r22, r12, 0		// access b[k][j]
 	mul r17, r21, r22	// a*b
 	add r3, r3, r17		// c[i][j] += a[i][k] * b[k][j]
+
+	add r11, r11, r4 	// a_index += 4 next
 	add r10, r10, r1	// k++
 	beq r10, r6, e_L3
 	jmp L3
 e_L3:
-	stw r3, r13
+	stw r3, r13, 0
 	add r9, r9 ,r1		// j++
+	add r13, r13, r4	// next c
 	beq r9, r6, e_L2
 	jmp L2
 e_L2:
+	add r11, r11, r4 //increase the a pointer for the next row
+
+	beq r8, r6, e_L1
+	jmp L1
+
+e_L1:
