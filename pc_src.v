@@ -5,21 +5,15 @@ module pc_src
     input [6:0] opcode,
     input operands_equal,
 
-    output reg [1:0] pc_src
+    output [1:0] pc_src
 );
 
     `include "parameters.v"
 
-    initial
-        pc_src = 2'b00;
+    wire uninitialized = (opcode === 7'bx);
+    wire should_brn    = ((opcode == `OP_BEQ) && operands_equal);
+    wire should_jmp    = (opcode == `OP_JMP);
 
-    always @(posedge clock) begin
-        if ((opcode == `OP_BEQ) && operands_equal)
-            pc_src <= 2'b01;
-        else if (opcode == `OP_JMP)
-            pc_src <= 2'b10;
-        else
-            pc_src <= 2'b00;
-    end
+    assign pc_src = uninitialized ? 2'b00 : (should_brn ? 2'b01 : (should_jmp ? 2'b10 : 2'b00));
 
 endmodule
