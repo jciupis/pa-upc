@@ -21,28 +21,26 @@ module hazard_detection
     output      d_flush,         // Flag indicating if Decode stage should be flushed
     output      x_stall,         // Flag indicating if Execute stage should stall
     output      m_stall,         // Flag indicating if Memory stage should stall
-    output      w_stall,         // Flag indicating if Writeback stage should stall
     output      jump_haz         // Flag to indicate jump/branch taken instruction so that pipeline flushes
     //output      fwd
 );
 
     // Detect presence of zero register as destination, so no forwarding occurs
-    wire x_dst_nzero = (x_dst_reg     != 5'b00000);
-    wire m_dst_nzero = (m_dst_reg     != 5'b00000);
-    wire w_dst_nzero = (w_dst_reg     != 5'b00000);
+    wire x_dst_nzero = (x_dst_reg != 5'b00000);
+    wire m_dst_nzero = (m_dst_reg != 5'b00000);
+    wire w_dst_nzero = (w_dst_reg != 5'b00000);
 
     // Detect potential hazards/forwards
-    wire d_x_haz = ((d_src_reg_1 == x_dst_reg) | (d_src_reg_2 == x_dst_reg))  & x_dst_nzero & x_reg_write;
-    wire d_m_haz = ((d_src_reg_1 == m_dst_reg) | (d_src_reg_2 == m_dst_reg))  & m_dst_nzero & m_reg_write;
-    wire d_w_haz = ((d_src_reg_1 == w_dst_reg) | (d_src_reg_2 == w_dst_reg))  & w_dst_nzero & w_reg_write;
+    wire d_x_haz = ((d_src_reg_1 == x_dst_reg) | (d_src_reg_2 == x_dst_reg)) & x_dst_nzero & x_reg_write;
+    wire d_m_haz = ((d_src_reg_1 == m_dst_reg) | (d_src_reg_2 == m_dst_reg)) & m_dst_nzero & m_reg_write;
+    wire d_w_haz = ((d_src_reg_1 == w_dst_reg) | (d_src_reg_2 == w_dst_reg)) & w_dst_nzero & w_reg_write;
 
-    wire x_m_haz = ((x_src_reg_1 == m_dst_reg) | (x_src_reg_2 == m_dst_reg)  
-                   | (x_dst_reg == m_dst_reg)) & m_dst_nzero & m_reg_write;
+    wire x_m_haz = ((x_src_reg_1 == m_dst_reg) | (x_src_reg_2 == m_dst_reg)) & m_dst_nzero & m_reg_write;
     // Careful with these 2; include extra check of the operand being src/dst?
-    wire x_w_haz = ((x_src_reg_1 == w_dst_reg) | (x_dst_reg == w_dst_reg))  & w_dst_nzero & m_reg_write;
+    wire x_w_haz = ((x_src_reg_1 == w_dst_reg) | (x_src_reg_2 == w_dst_reg)) & w_dst_nzero & m_reg_write;
     
     //No hazard in WB stage
-    //wire m_w_haz =  (m_dst_reg   == w_dst_reg)                                  & w_dst_nzero & w_reg_write;
+    //wire m_w_haz =  (m_dst_reg   == w_dst_reg) & w_dst_nzero & w_reg_write;
 
     // In case of d_x_haz or x_m_haz, forward from execute_to_memory pipeline reg
     
@@ -52,7 +50,8 @@ module hazard_detection
 
     assign x_stall = (x_m_haz & (x_m_haz !== 1'bx)) | x_w_haz & (x_w_haz !== 1'bx)
                      | (~x_alu_ready & (x_reg_write & (x_reg_write !== 1'bx)));
-    assign d_stall = (d_x_haz & (d_x_haz !== 1'bx)) | (d_m_haz & (d_m_haz !== 1'bx)) | x_stall;
+    assign d_stall = (d_x_haz & (d_x_haz !== 1'bx)) | (d_m_haz & (d_m_haz !== 1'bx)) |
+                     (d_w_haz & (d_w_haz !== 1'bx)) | x_stall;
     assign f_stall =  d_stall;
 
     assign jump_haz = pc_src[1] ^ pc_src[0];

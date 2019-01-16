@@ -357,7 +357,6 @@ module processor
    wire hz_f_stall;
    wire hz_d_stall;
    wire hz_x_stall;
-   wire hz_m_stall;
 
    hazard_detection hzd
    (
@@ -379,8 +378,7 @@ module processor
        .f_flush     (f_flush),
        .d_stall     (hz_d_stall),
        .d_flush     (d_flush),
-       .x_stall     (hz_x_stall),
-       .m_stall     (hz_m_stall)
+       .x_stall     (hz_x_stall)
    );
 
 endmodule
