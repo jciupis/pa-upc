@@ -16,8 +16,8 @@ module fetch_to_decode
 );
 
     always @(posedge clock) begin
-        d_instr <= (reset) ? 32'b0 : (d_stall ? d_instr : (f_stall ? 32'b0 : f_instr));
-        d_pc    <= (reset) ? 32'b0 : (d_stall ? d_pc                       : f_pc);
+        d_instr <= (reset | f_flush) ? 32'b0 : (d_stall ? d_instr : (f_stall ? 32'b0 : f_instr));
+        d_pc    <= (reset)           ? 32'b0 : (d_stall ? d_pc                       : f_pc);
     end
 
 endmodule

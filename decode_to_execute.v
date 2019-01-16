@@ -45,8 +45,8 @@ module decode_to_execute
 
     always @(posedge clock) begin
         x_pc          <= (reset) ? 31'b0 : (x_stall ? x_pc                            : d_pc);
-        x_opcode      <= (reset) ?  7'b0 : (x_stall ? x_opcode      : (d_stall ? 7'b0 : d_opcode));
-        x_dst_reg     <= (reset) ?  6'b0 : (x_stall ? x_dst_reg                       : d_dst_reg);
+        x_opcode      <= (reset | d_flush) ?  7'b0 : (x_stall ? x_opcode      : (d_stall ? 7'b0 : d_opcode));
+        x_dst_reg     <= (reset | d_flush) ?  6'b0 : (x_stall ? x_dst_reg                       : d_dst_reg);
         x_src_reg_1   <= (reset) ?  6'b0 : (x_stall ? x_src_reg_1                     : d_src_reg_1);
         x_src_reg_2   <= (reset) ?  6'b0 : (x_stall ? x_src_reg_2                     : d_src_reg_2);
         x_mem_offset  <= (reset) ? 32'b0 : (x_stall ? x_mem_offset                    : d_mem_offset);
@@ -55,11 +55,11 @@ module decode_to_execute
         x_read_data_1 <= (reset) ? 32'b0 : (x_stall ? x_read_data_1                   : d_read_data_1);
         x_read_data_2 <= (reset) ? 32'b0 : (x_stall ? x_read_data_2                   : d_read_data_2);
         x_alu_imm_src <= (reset) ?  1'b0 : (x_stall ? x_alu_imm_src                   : d_alu_imm_src);
-        x_mem_read    <= (reset) ?  1'b0 : (x_stall ? x_mem_read    : (d_stall ? 1'b0 : d_mem_read));
-        x_mem_write   <= (reset) ?  1'b0 : (x_stall ? x_mem_write   : (d_stall ? 1'b0 : d_mem_write));
-        x_mem_byte    <= (reset) ?  1'b0 : (x_stall ? x_mem_byte                      : d_mem_byte);
-        x_reg_write   <= (reset) ?  1'b0 : (x_stall ? x_reg_write   : (d_stall ? 1'b0 : d_reg_write));
-        x_mem_to_reg  <= (reset) ?  1'b0 : (x_stall ? x_mem_to_reg                    : d_mem_to_reg);
+        x_mem_read    <= (reset | d_flush) ?  1'b0 : (x_stall ? x_mem_read    : (d_stall ? 1'b0 : d_mem_read));
+        x_mem_write   <= (reset | d_flush) ?  1'b0 : (x_stall ? x_mem_write   : (d_stall ? 1'b0 : d_mem_write));
+        x_mem_byte    <= (reset | d_flush) ?  1'b0 : (x_stall ? x_mem_byte                      : d_mem_byte);
+        x_reg_write   <= (reset | d_flush) ?  1'b0 : (x_stall ? x_reg_write   : (d_stall ? 1'b0 : d_reg_write));
+        x_mem_to_reg  <= (reset | d_flush) ?  1'b0 : (x_stall ? x_mem_to_reg                    : d_mem_to_reg);
     end
 
 endmodule
