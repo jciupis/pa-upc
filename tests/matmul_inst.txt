@@ -1,0 +1,37 @@
+ldb r4, r0, 0
+ldb r5, r0, 1
+ldb r1, r0, 2
+ldb r6, r0, 3
+add r8, r0, r0
+add r9, r0, r0
+add r10,r0, r0
+ldw r14 r0, 10
+ldw r15 r0, 140
+ldw r16 r0, 270
+add r11, r14, r0
+add r12, r15, r0
+add r13, r16, r0
+add r9, r0, r0
+add r3, r0, r0
+add r10,r0, r0
+add r11, r11, r14
+ldw r21, r11, 0
+mul r12, r10, r6
+add r12, r12, r9
+mul r12, r12, r4
+add r12, r12, r15
+ldw r22, r12, 0
+mul r17, r21, r22
+add r3, r3, r17
+add r11, r11, r4
+add r10, r10, r1
+beq r10, r6, 2
+jmp r0, 18
+stw r3, r13, 0
+add r9, r9 ,r1
+add r13, r13, r4
+beq r9, r6, 2
+jmp r0, 15
+add r11, r11, r4
+beq r8, r6, 2
+jmp r0, 14

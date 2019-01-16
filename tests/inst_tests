@@ -23,11 +23,11 @@ end:
 
 Memcopy
 
-ldb r4, rX, 2000 // r4 = 4
-ldb r5, rX, 2001 // r5 = 5
-ldb r1, rX, 2002 // r1 = 1
+ldb r4, r0, 0 // r4 = 4
+ldb r5, r0, 1 // r5 = 5
+ldb r1, r0, 2 // r1 = 1
 add r7, r0, r0 // i = 0
-ldb r11, rX, 2003	// i_l = 128
+ldb r11, r0, 3	// i_l = 128
 
 ldw r8 @pa	// pointer to a
 add r9, r8, r0 // initialize the offset in r9
@@ -55,7 +55,7 @@ nop
 
 
 
-Matmul - INCOMPLETE
+Matmul
 
 ldb r4, @x // r4 = 4
 ldb r5, @y // r5 = 5
@@ -75,7 +75,7 @@ add r12, r15, r0 //init offset b
 add r13, r16, r0 //init offset c
 
 L1:
-nop
+add r9, r0, r0 // j = 0
 L2:
 	add r3, r0, r0	// c[i][j] = 0
 	add r10,r0, r0	// k = 0
