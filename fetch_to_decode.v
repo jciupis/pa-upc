@@ -7,6 +7,7 @@ module fetch_to_decode
     input [31:0] f_instr,      // Instruction.
     input [31:0] f_pc,         // Program counter.
     input        f_stall,      // Flag indicating that this stage is stalled.
+    input        f_flush,      // Flag indicating stage should be set to opcode 0
     
     /* Decode stage variables. */
     input             d_stall, // Flag indicating that this stage is stalled.

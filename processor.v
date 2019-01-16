@@ -16,6 +16,7 @@ module processor
     wire [31:0] f_pc_add4;    // Next value of the PC (no support for branches yet).
     wire [31:0] f_instr;      // Fetched instruction.
     wire        f_stall;
+    wire        f_flush;
     wire        f_imem_stall; // Flag that indicates pipeline should stall while waiting for instruction cache to update.
 
     /* Decode stage variables. */
@@ -37,6 +38,7 @@ module processor
     wire        d_reg_write;
     wire        d_mem_to_reg;
     wire        d_stall;
+    wire        d_flush;
 
     /* Execute stage variables. */
     wire [1:0]  x_pc_src;
@@ -55,6 +57,7 @@ module processor
     wire [31:0] x_read_data_2;
     wire [31:0] x_read_data_imm;
     wire [31:0] x_alu_result;
+    wire        x_alu_ready;
     wire        x_alu_imm_src;
     wire        x_mem_read;
     wire        x_mem_write;
@@ -157,6 +160,7 @@ module processor
         .f_instr  (f_instr),
         .f_pc     (f_pc_out),
         .f_stall  (f_stall),
+        .f_flush  (f_flush),
         .d_stall  (d_stall),
         .d_instr  (d_instr),
         .d_pc     (d_pc)
@@ -207,6 +211,7 @@ module processor
         .d_reg_write   (d_reg_write),
         .d_mem_to_reg  (d_mem_to_reg),
         .d_stall       (d_stall),
+        .d_flush       (d_flush),
         .x_stall       (x_stall),
         .x_pc          (x_pc),
         .x_opcode      (x_opcode),

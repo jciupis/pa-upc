@@ -21,6 +21,7 @@ module decode_to_execute
     input        d_reg_write,         // Flag indicating that register file should be written.
     input        d_mem_to_reg,        // Flag indicating if register file write data is ALU output (0) or data memory (1).
     input        d_stall,             // Flag indicating that this stage is stalled.
+    input        d_flush,             // Flag indicating that this stage shoud be flushed.
 
     /* Execute stage variables */
     input             x_stall,        // Flag indicating that this stage is stalled.
