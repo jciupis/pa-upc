@@ -90,10 +90,10 @@ module processor
 
     /* Pipeline stall assignments. */
     assign w_stall = m_stall;
-    assign m_stall = f_stall | (m_dmem_stall & (m_dmem_stall !== 1'bx));
-    assign x_stall = m_stall;
-    assign d_stall = m_stall;
-    assign f_stall = f_imem_stall | (m_dmem_stall & (m_dmem_stall !== 1'bx));
+    assign m_stall = (f_stall & ~hz_f_stall) | (m_dmem_stall & (m_dmem_stall !== 1'bx));
+    assign x_stall = m_stall | hz_x_stall;
+    assign d_stall = m_stall | hz_d_stall;
+    assign f_stall = f_imem_stall | (m_dmem_stall & (m_dmem_stall !== 1'bx)) | hz_f_stall;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////  FETCH  //////////////////////////////////////////////
@@ -350,5 +350,37 @@ module processor
     );
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+   assign x_alu_ready = 1'b1;   //FIXME: temp
+
+   /* Hazard testing */
+   wire hz_f_stall;
+   wire hz_d_stall;
+   wire hz_x_stall;
+   wire hz_m_stall;
+
+   hazard_detection hzd
+   (
+       .clock  (clock),
+       .d_src_reg_1 (d_src_reg_1),
+       .d_src_reg_2 (d_src_reg_2),
+       .x_src_reg_1 (x_src_reg_1),
+       .x_src_reg_2 (x_src_reg_2),
+       .x_dst_reg   (x_dst_reg),
+       .x_alu_ready (x_alu_ready),
+       .m_dst_reg   (m_dst_reg),
+       .w_dst_reg   (w_dst_reg),
+       .d_reg_write (d_reg_write),
+       .x_reg_write (x_reg_write),
+       .m_reg_write (m_reg_write),
+       .w_reg_write (w_reg_write),
+       .pc_src      (x_pc_src),
+       .f_stall     (hz_f_stall),
+       .f_flush     (f_flush),
+       .d_stall     (hz_d_stall),
+       .d_flush     (d_flush),
+       .x_stall     (hz_x_stall),
+       .m_stall     (hz_m_stall)
+   );
 
 endmodule
