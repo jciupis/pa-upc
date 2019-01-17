@@ -42,15 +42,15 @@ def encode_reg_instr(instr):
         hex_instr += 0x2 << 25
 
     # Encode destination register.
-    dst_reg = int(''.join(c for c in dst if c.isdigit()), 16)
+    dst_reg = int(''.join(c for c in dst if c.isdigit()), 10)
     hex_instr += dst_reg << 20
 
     # Encode first source register.
-    src_1_reg = int(''.join(c for c in src_1 if c.isdigit()), 16)
+    src_1_reg = int(''.join(c for c in src_1 if c.isdigit()), 10)
     hex_instr += src_1_reg << 15
 
     # Encode second source register.
-    src_2_reg = int(''.join(c for c in src_2 if c.isdigit()), 16)
+    src_2_reg = int(''.join(c for c in src_2 if c.isdigit()), 10)
     hex_instr += src_2_reg << 10
 
     return hex_instr
@@ -81,11 +81,11 @@ def encode_mem_instr(instr):
         hex_instr += 0x13 << 25
 
     # Encode destination register.
-    dst_reg = int(''.join(c for c in dst if c.isdigit()), 16)
+    dst_reg = int(''.join(c for c in dst if c.isdigit()), 10)
     hex_instr += dst_reg << 20
 
     # Encode source register.
-    src_reg = int(''.join(c for c in src if c.isdigit()), 16)
+    src_reg = int(''.join(c for c in src if c.isdigit()), 10)
     hex_instr += src_reg << 15
 
     # Encode offset.
@@ -109,7 +109,7 @@ def encode_ctrl_instr(instr):
         hex_instr += 0x30 << 25
 
         # Encode first source register.
-        src_1_reg = int(''.join(c for c in instr[1] if c.isdigit()), 16)
+        src_1_reg = int(''.join(c for c in instr[1] if c.isdigit()), 10)
         hex_instr += src_1_reg << 15
 
         # Encode second source register.
