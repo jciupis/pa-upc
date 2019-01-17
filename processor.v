@@ -88,13 +88,6 @@ module processor
     wire [31:0] w_write_data;
     wire        w_stall;
 
-    /* Pipeline stall assignments. */
-    assign w_stall = m_stall;
-    assign m_stall = (f_stall & ~hz_f_stall) | (m_dmem_stall & (m_dmem_stall !== 1'bx));
-    assign x_stall = m_stall | hz_x_stall;
-    assign d_stall = m_stall | hz_d_stall;
-    assign f_stall = f_imem_stall | (m_dmem_stall & (m_dmem_stall !== 1'bx)) | hz_f_stall;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////  FETCH  //////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -360,7 +353,7 @@ module processor
 
    hazard_detection hzd
    (
-       .clock  (clock),
+       .clock       (clock),
        .d_src_reg_1 (d_src_reg_1),
        .d_src_reg_2 (d_src_reg_2),
        .x_src_reg_1 (x_src_reg_1),
@@ -369,16 +362,30 @@ module processor
        .x_alu_ready (x_alu_ready),
        .m_dst_reg   (m_dst_reg),
        .w_dst_reg   (w_dst_reg),
-       .d_reg_write (d_reg_write),
        .x_reg_write (x_reg_write),
        .m_reg_write (m_reg_write),
        .w_reg_write (w_reg_write),
-       .pc_src      (x_pc_src),
        .f_stall     (hz_f_stall),
-       .f_flush     (f_flush),
        .d_stall     (hz_d_stall),
-       .d_flush     (d_flush),
        .x_stall     (hz_x_stall)
+   );
+
+   stall_ctrl stall_ctrl
+   (
+       .clock         (clock),
+       .f_imem_stall  (f_imem_stall),
+       .hz_f_stall    (hz_f_stall),
+       .hz_d_stall    (hz_d_stall),
+       .hz_x_stall    (hz_x_stall),
+       .x_pc_src      (x_pc_src),
+       .m_dmem_stall  (m_dmem_stall),
+       .f_flush       (f_flush),
+       .f_stall       (f_stall),
+       .d_flush       (d_flush),
+       .d_stall       (d_stall),
+       .x_stall       (x_stall),
+       .m_stall       (m_stall),
+       .w_stall       (w_stall)
    );
 
 endmodule
