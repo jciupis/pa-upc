@@ -1,6 +1,5 @@
 module stall_ctrl
 (
-    input clock,
     input f_imem_stall,
     input hz_f_stall,
     input hz_d_stall,

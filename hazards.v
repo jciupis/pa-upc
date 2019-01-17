@@ -1,6 +1,5 @@
 module hazard_detection
 (
-    input       clock,
     input [4:0] d_src_reg_1,     // Decode stage first source register index
     input [4:0] d_src_reg_2,     // Decode stage second source register index
     input [4:0] x_src_reg_1,     // Execute stage first source register index

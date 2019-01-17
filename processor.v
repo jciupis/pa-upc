@@ -353,7 +353,6 @@ module processor
 
    hazard_detection hzd
    (
-       .clock       (clock),
        .d_src_reg_1 (d_src_reg_1),
        .d_src_reg_2 (d_src_reg_2),
        .x_src_reg_1 (x_src_reg_1),
@@ -372,7 +371,6 @@ module processor
 
    stall_ctrl stall_ctrl
    (
-       .clock         (clock),
        .f_imem_stall  (f_imem_stall),
        .hz_f_stall    (hz_f_stall),
        .hz_d_stall    (hz_d_stall),
